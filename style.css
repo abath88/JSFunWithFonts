@@ -61,3 +61,10 @@ body {
 #font-size {
     width: 40px;
 }
+
+.btn {
+    border: 1px solid yellow;
+    padding: 0 10px;
+    margin-left: 20px;
+    cursor: pointer;
+}

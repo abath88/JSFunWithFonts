@@ -10,7 +10,7 @@ let fontsG = [
 ]
 
 let currentFont = "Times New Roman"
-let selectionG = window.getSelection().getRangeAt(0)
+let range = null
 
 function createFontList(fonts) {
     for(let font of fonts) {
@@ -96,9 +96,92 @@ inputContainer.addEventListener("dblclick", (e) => {
 })
 
 
+let editor = document.getElementById("editor")
+
+editor.addEventListener("blur", (e) => {
+    let selection = window.getSelection()
+    range = selection.getRangeAt(0)
+})
+
 let fontSize = document.getElementById("font-size")
 
-fontSize.addEventListener('input', e => {
+fontSize.addEventListener('input', (e) => {
+    e.preventDefault()
+    let n = 38
+    if( range != null){
+        editor.focus()
+        selection = window.getSelection()
+        selection.removeAllRanges()
+        selection.addRange(range)
 
-    document.execCommand("fontSize", false, e.target.value)
+
+        let docFragment = range.extractContents()
+        console.log(docFragment)
+        let elements = docFragment.querySelectorAll("*")
+        
+        for(ele of elements) {
+            let span = document.createElement('span')
+            span.style.fontSize = `${n}px`
+            span.textContent = ele.textContent
+            
+            ele.textContent = ""
+            ele.appendChild(span)
+
+        }
+        editor.innerHTML = ""
+        editor.appendChild(docFragment)
+
+        let afterEditRange = new Range()
+        afterEditRange.setStart(elements[0], 0)
+        afterEditRange.setEnd(elements[elements.length - 1], 0)
+
+        range = afterEditRange
+        
+        editor.focus()
+        selection = window.getSelection()
+        selection.removeAllRanges()
+        selection.addRange(afterEditRange)
+    }
 })
+
+fontSize.addEventListener('mousedown', (e) => {
+    let selection = window.getSelection()
+    range = selection.getRangeAt(0)
+})
+
+fontSize.addEventListener('focusin', (e) => {
+    let selection = window.getSelection()
+    selection.addRange(range)
+})
+
+
+let copy = document.getElementById("copy")
+copy.addEventListener('mousedown', e => {
+    document.execCommand('copy')
+})
+
+let paste = document.getElementById("paste")
+paste.addEventListener('mousedown', (e) => {
+    let selection = window.getSelection()
+    let myRange = selection.getRangeAt(0)
+    navigator.clipboard.readText().then(text =>{
+        let htmlText = text.split('\n')
+        let el = document.createElement('div')
+        for(hText of htmlText){
+            el.append(hText)
+            el.append(document.createElement('br'))
+        }
+        myRange.insertNode(el)
+    })
+})
+
+let sel = document.getElementById("sel")
+sel.addEventListener("mousedown", e => {
+    console.log(range)
+    e.preventDefault()
+    editor.focus()
+    let selection = window.getSelection()
+    selection.removeAllRanges()
+    selection.addRange(range)
+})
+// \n
